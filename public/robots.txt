@@ -1,0 +1,5 @@
+# FERCOPOR Info: páginas para partilha direta, não para pesquisa.
+# Não bloqueamos o rastreio de propósito: os motores de pesquisa precisam de abrir as páginas para lerem a
+# diretiva «noindex» (meta robots e cabeçalho X-Robots-Tag). Sem sitemap.
+User-agent: *
+Allow: /

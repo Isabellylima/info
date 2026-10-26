@@ -1,0 +1,15 @@
+// FERCOPOR Info — Worker «info» (Cloudflare Workers ligado ao GitHub Isabellylima/info).
+{
+  "name": "info",
+  "main": "src/index.js",
+  "compatibility_date": "2025-06-01",
+  "workers_dev": true,
+  // Ficheiros estáticos (estilo, logótipo, imagens de partilha, robots.txt); o resto passa pelo Worker.
+  "assets": { "directory": "public", "binding": "ASSETS" },
+  // Mantém as variáveis e segredos definidos no painel (HUBSPOT_TOKEN, ATUALIZAR_TOKEN) em cada publicação.
+  "keep_vars": true,
+  "observability": { "enabled": true },
+  // KV: endereços atribuídos (slug:<id>) e última versão válida dos dados (dados:v1).
+  // Sem «id»: o Cloudflare cria o namespace na primeira publicação (aprovisionamento automático do Wrangler).
+  "kv_namespaces": [{ "binding": "INFO_KV" }]
+}

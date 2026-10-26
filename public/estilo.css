@@ -1,0 +1,59 @@
+/* FERCOPOR Info — identidade FERCOPOR (cores da app Comercial), sem dependências externas */
+:root {
+  --tinta: #202020;
+  --bronze: #7E6A32;
+  --bronze-escuro: #5F4F24;
+  --creme: #FFF9EB;
+  --fundo: #FAF8F3;
+  --superficie: #FFFFFF;
+  --linha: #E8E5DC;
+  --texto-2: #4D4D4D;
+  --texto-3: #6B6B6B;
+  --raio: 8px;
+  --letra: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--fundo); color: var(--tinta); font: 16px/1.5 var(--letra); }
+a { color: inherit; }
+
+.topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px max(16px, calc((100% - 960px) / 2)); background: var(--tinta); color: var(--creme); }
+.logo { display: block; height: 22px; width: auto; }
+.idiomas { display: flex; align-items: center; gap: 6px; font-size: 14px; letter-spacing: .08em; }
+.idiomas a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 8px; text-decoration: none; color: rgba(255, 249, 235, .65); font-weight: 600; border-radius: 4px; }
+.idiomas a[aria-current="page"] { color: var(--creme); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+.idiomas a:focus-visible { outline: 2px solid var(--creme); outline-offset: 2px; }
+.idiomas span { color: rgba(255, 249, 235, .4); }
+
+.capa { position: relative; background: var(--tinta); color: var(--creme); max-width: 960px; margin: 0 auto; }
+.capa-imagem { display: block; width: 100%; height: auto; aspect-ratio: 1240 / 822; object-fit: cover; }
+.capa-texto { position: absolute; left: 0; right: 0; bottom: 0; padding: 48px 24px 20px; background: linear-gradient(to top, rgba(20, 20, 20, .78), rgba(20, 20, 20, 0)); }
+.capa.sem-imagem .capa-texto { position: static; background: none; padding: 40px 24px 32px; }
+.sobretitulo { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: rgba(255, 249, 235, .85); }
+.capa h1 { margin: 0; font-size: clamp(30px, 7vw, 48px); line-height: 1.1; letter-spacing: .04em; font-weight: 800; }
+
+.conteudo { max-width: 960px; margin: 0 auto; padding: 24px 16px 8px; }
+.categoria { margin-bottom: 24px; }
+.categoria h2 { margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--linha); font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--bronze-escuro); }
+.categoria ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+@media (min-width: 640px) { .categoria ul { grid-template-columns: 1fr 1fr; } }
+.documento { display: flex; align-items: center; gap: 14px; min-height: 64px; padding: 12px 14px; background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio); text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+.documento:hover { border-color: var(--bronze); box-shadow: 0 2px 10px rgba(32, 32, 32, .06); }
+.documento:focus-visible { outline: 3px solid var(--bronze); outline-offset: 2px; }
+.doc-icone { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 6px; background: var(--creme); color: var(--bronze-escuro); font-size: 11px; font-weight: 800; letter-spacing: .06em; }
+.doc-texto { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.doc-texto strong { font-size: 16px; }
+.doc-texto small { font-size: 14px; color: var(--texto-3); }
+.doc-abrir { flex: none; font-size: 14px; font-weight: 700; color: var(--bronze); }
+
+.aviso { margin: 0 0 16px; padding: 10px 12px; border-radius: var(--raio); background: var(--creme); color: var(--texto-2); font-size: 14px; }
+.vazio { margin: 8px 0 24px; color: var(--texto-2); }
+.rodape { max-width: 960px; margin: 0 auto; padding: 8px 16px 32px; font-size: 13px; color: var(--texto-3); }
+.rodape p { margin: 4px 0; }
+
+.pagina-mensagem { min-height: 100vh; }
+.mensagem { max-width: 560px; margin: 0 auto; padding: 64px 16px; }
+.mensagem h1 { margin: 0 0 8px; font-size: 26px; }
+.mensagem p { margin: 0; color: var(--texto-2); }
+
+@media (prefers-reduced-motion: reduce) { .documento { transition: none; } }
