@@ -5,7 +5,13 @@ import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
-import { CAPAS, ENDERECOS } from '../src/enderecos.js';
+import { ENDERECOS } from '../src/enderecos.js';
+// Imagens de origem (os mesmos URLs da propriedade «imagem do empreendimento» no HubSpot, 2026-10-26)
+const CAPAS = {
+  '1357339027666': 'https://fercopor.pt/wp-content/uploads/2026/01/Residencial_SERENITY.webp',
+  '1357289521370': 'https://fercopor.pt/wp-content/uploads/2026/01/Residencial_RAIZ.webp',
+  '1357336474850': 'https://fercopor.pt/wp-content/uploads/2026/01/Residencial_FOLIAGE.webp',
+};
 
 const EDGE = process.env.EDGE || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const SAIDA = new URL('../public/partilha/', import.meta.url);

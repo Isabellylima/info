@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import worker from '../src/index.js';
 import { limparMemoria, gerarSlug, linkValido, FRESCO_MS } from '../src/dados.js';
-import { ENDERECOS, CAPAS, IMAGENS_PARTILHA } from '../src/enderecos.js';
+import { ENDERECOS, IMAGENS_PARTILHA } from '../src/enderecos.js';
 import { hubspotFicticio, kvMemoria, empreendimentosFicticios } from './dados-ficticios.mjs';
 
 const TOKEN = 'pat-eu1-segredo-de-teste-0000';
@@ -138,7 +138,6 @@ test('7-8. Imagem certa por ID (capa WebP oficial; og:image JPEG) e metadados Op
   assert.equal(meta((await pedir(a, '/raiz/en')).texto, 'og:url'), 'https://info.fercopor.workers.dev/raiz/en');
   // associação pelo ID do registo, não pelo nome; ficheiros JPEG existem e têm a proporção declarada
   for (const [id, slug] of Object.entries(ENDERECOS)) {
-    assert.ok(CAPAS[id].includes(`Residencial_${slug.toUpperCase()}.webp`));
     const jpg = readFileSync(new URL(`../public${IMAGENS_PARTILHA[id].caminho}`, import.meta.url));
     assert.equal(jpg[0], 0xff); assert.equal(jpg[1], 0xd8, 'JPEG');
     assert.ok(jpg.length < 300 * 1024, 'abaixo de 300 KB (WhatsApp)');
@@ -263,7 +262,7 @@ test('15. Página responsiva e segura: viewport, sem JavaScript, CSP, botões gr
   const { r, texto } = await pedir(a, '/serenity');
   assert.match(texto, /<meta name="viewport" content="width=device-width, initial-scale=1">/);
   assert.doesNotMatch(texto, /<script/i);
-  assert.match(r.headers.get('Content-Security-Policy'), /default-src 'none'; img-src 'self' https:\/\/fercopor\.pt/);
+  assert.match(r.headers.get('Content-Security-Policy'), /default-src 'none'; img-src 'self' https:;/);
   assert.match(texto, /target="_blank" rel="noopener noreferrer"/);
   const css = readFileSync(new URL('../public/estilo.css', import.meta.url), 'utf8');
   assert.match(css, /\.documento \{[^}]*min-height: 64px/);

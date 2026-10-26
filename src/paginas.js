@@ -1,5 +1,5 @@
 // HTML das páginas públicas (sem JavaScript): PT e EN, metadados de partilha e diretivas de não indexação.
-import { CAPAS, LOGOTIPOS, IMAGENS_PARTILHA, IMAGEM_GERAL } from './enderecos.js';
+import { IMAGENS_PARTILHA, IMAGEM_GERAL } from './enderecos.js';
 
 export const TEXTOS = {
   pt: {
@@ -52,9 +52,9 @@ ${url ? `<meta property="og:type" content="website">
 <meta property="og:locale" content="${t.locale}">
 <meta property="og:image" content="${esc(imagem.url)}">
 <meta property="og:image:secure_url" content="${esc(imagem.url)}">
-<meta property="og:image:type" content="image/jpeg">
-<meta property="og:image:width" content="${imagem.largura}">
-<meta property="og:image:height" content="${imagem.altura}">
+<meta property="og:image:type" content="${imagem.tipo || 'image/jpeg'}">
+${imagem.largura ? `<meta property="og:image:width" content="${imagem.largura}">
+<meta property="og:image:height" content="${imagem.altura}">` : ''}
 <meta property="og:image:alt" content="${esc(imagem.alt)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(titulo)}">
@@ -82,7 +82,7 @@ function seletor(t, idioma, slug) {
 // Logótipo oficial no lugar do nome escrito (proporção original; o nome fica no texto alternativo e aparece se a
 // imagem não carregar). Sem logótipo: o nome escrito.
 function logotipoOuNome(e, classe) {
-  const l = LOGOTIPOS[e.id];
+  const l = e.logo ? { url: e.logo } : null;
   if (!l) return `<span class="${classe}-texto">${esc(e.nome)}</span>`;
   return `<img class="${classe}" src="${esc(l.url)}" alt="${esc(e.nome)}" decoding="async">`;
 }
@@ -151,14 +151,16 @@ function rodape(t) {
 }
 
 export function imagemPartilha(origem, e) {
-  const p = IMAGENS_PARTILHA[e.id] || IMAGEM_GERAL;
-  return { url: origem + p.caminho, largura: p.largura, altura: p.altura, alt: IMAGENS_PARTILHA[e.id] ? `${e.nome} — FERCOPOR` : 'FERCOPOR' };
+  const p = IMAGENS_PARTILHA[e.id];
+  if (p) return { url: origem + p.caminho, largura: p.largura, altura: p.altura, alt: `${e.nome} — FERCOPOR`, tipo: 'image/jpeg' };
+  if (e.imagem && /\.(jpe?g|png)$/i.test(new URL(e.imagem).pathname)) return { url: e.imagem, alt: `${e.nome} — FERCOPOR`, tipo: /\.png$/i.test(e.imagem) ? 'image/png' : 'image/jpeg' };
+  return { url: origem + IMAGEM_GERAL.caminho, largura: IMAGEM_GERAL.largura, altura: IMAGEM_GERAL.altura, alt: 'FERCOPOR', tipo: 'image/jpeg' };
 }
 
 export function paginaEmpreendimento({ origem, e, idioma, reserva }) {
   const t = TEXTOS[idioma];
   const url = `${origem}/${e.slug}${idioma === 'en' ? '/en' : ''}`;
-  const capa = CAPAS[e.id];
+  const capa = e.imagem;
   const documentos = blocosDocumentos(t, idioma, e.materiais);
   return `${cabecalho({
     t, titulo: `${e.nome} — ${t.titulo} | FERCOPOR`, descricao: t.descricao(e.nome), url, imagem: imagemPartilha(origem, e),
@@ -193,7 +195,7 @@ export function paginaInicial({ origem, empreendimentos, idioma, reserva }) {
   const [titulo, texto] = t.inicio;
   const sufixo = idioma === 'en' ? '/en' : '';
   const cartoes = empreendimentos.map((e) => {
-    const capa = CAPAS[e.id];
+    const capa = e.imagem;
     return `<li><a class="cartao" href="/${e.slug}${sufixo}">
           <span class="cartao-imagem">${capa ? `<img src="${esc(capa)}" alt="" width="1240" height="822" loading="lazy" decoding="async">` : ''}
             <span class="cartao-logo">${logotipoOuNome(e, 'logo-cartao')}</span></span>
@@ -201,7 +203,7 @@ export function paginaInicial({ origem, empreendimentos, idioma, reserva }) {
         </a></li>`;
   }).join('\n        ');
   return `${cabecalho({
-    t, titulo: `FERCOPOR — ${titulo}`, descricao: texto, url: origem + (sufixo || '/'), imagem: { url: origem + IMAGEM_GERAL.caminho, largura: IMAGEM_GERAL.largura, altura: IMAGEM_GERAL.altura, alt: 'FERCOPOR' },
+    t, titulo: `FERCOPOR — ${titulo}`, descricao: texto, url: origem + (sufixo || '/'), imagem: { url: origem + IMAGEM_GERAL.caminho, largura: IMAGEM_GERAL.largura, altura: IMAGEM_GERAL.altura, alt: 'FERCOPOR', tipo: 'image/jpeg' },
     alternativas: [{ lang: 'pt-PT', url: `${origem}/` }, { lang: 'en', url: `${origem}/en` }],
   })}
 <body>

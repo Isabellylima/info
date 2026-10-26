@@ -5,7 +5,7 @@ import { ENDERECOS, REDIRECIONAMENTOS, RESERVADOS } from './enderecos.js';
 export const ESTADO_PUBLICAVEL = 'Em Comercialização';
 const OBJETO = '0-410';   // Empreendimentos (Courses)
 // Propriedades lidas (nomes internos confirmados; «finishingh_maps» é o nome técnico existente do Finishing Maps)
-const PROPRIEDADES = ['hs_course_name', 'estado_da_comercializacao', 'brochura', 'brochura_en', 'tabela_comercial',
+const PROPRIEDADES = ['hs_course_name', 'estado_da_comercializacao', 'imagem_do_empreendimento', 'logo', 'brochura', 'brochura_en', 'tabela_comercial',
   'tabela_comercial_en', 'plantas_disponiveis', 'mapa_de_acabamentos', 'finishingh_maps'];
 const PORTAL = '27006740';
 const HOSTS_PERMITIDOS = [`${PORTAL}.fs1.hubspotusercontent-eu1.net`];
@@ -33,6 +33,18 @@ export function linkValido(valor) {
   try { u = new URL(texto); } catch { return ''; }
   if (u.protocol !== 'https:' || u.username || u.password) return '';
   if (!HOSTS_PERMITIDOS.includes(u.hostname) || !u.pathname.startsWith(`/hubfs/${PORTAL}/`)) return '';
+  return u.href;
+}
+
+// Imagem principal e logótipo (propriedades «imagem do empreendimento» e «logo»): só URLs https de imagem; inválido = vazio
+// (a página mostra a alternativa: faixa FERCOPOR e o nome escrito)
+export function imagemValida(valor) {
+  const texto = String(valor || '').trim();
+  if (!texto) return '';
+  let u;
+  try { u = new URL(texto); } catch { return ''; }
+  if (u.protocol !== 'https:' || u.username || u.password) return '';
+  if (!/\.(webp|jpe?g|png|svg|avif|gif)$/i.test(u.pathname)) return '';
   return u.href;
 }
 
@@ -82,7 +94,10 @@ async function lerHubSpot(env) {
   }
   // Segunda verificação do estado (valor técnico), além do filtro do pedido
   return resultados.filter((o) => (o.properties || {}).estado_da_comercializacao === ESTADO_PUBLICAVEL)
-    .map((o) => ({ id: String(o.id), nome: String(o.properties.hs_course_name || '').trim(), materiais: materiaisDe(o.properties) }))
+    .map((o) => ({
+      id: String(o.id), nome: String(o.properties.hs_course_name || '').trim(), materiais: materiaisDe(o.properties),
+      imagem: imagemValida(o.properties.imagem_do_empreendimento), logo: imagemValida(o.properties.logo),
+    }))
     .filter((e) => e.nome && temMateriais(e.materiais));
 }
 

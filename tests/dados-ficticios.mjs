@@ -4,20 +4,20 @@ const F = 'https://27006740.fs1.hubspotusercontent-eu1.net/hubfs/27006740';
 export function empreendimentosFicticios() {
   return [
     { id: '1357339027666', properties: {
-      hs_course_name: 'SERENITY', estado_da_comercializacao: 'Em Comercialização',
+      hs_course_name: 'SERENITY', estado_da_comercializacao: 'Em Comercialização', imagem_do_empreendimento: 'https://fercopor.pt/wp-content/uploads/2026/01/Residencial_SERENITY.webp', logo: 'https://fercopor.pt/wp-content/uploads/2026/01/serenity_logo.svg',
       brochura: `${F}/SERENITY/brochura_PT.pdf`, brochura_en: `${F}/SERENITY/brochura_PT.pdf`,   // como no HubSpot: EN = PT
       tabela_comercial: `${F}/SERENITY/tabela_PT.pdf`, tabela_comercial_en: `${F}/SERENITY/price_list_EN.pdf`,
       plantas_disponiveis: `${F}/SERENITY/plantas.pdf`,
       mapa_de_acabamentos: `${F}/SERENITY/mapa_acabamentos_PT.pdf`, finishingh_maps: `${F}/SERENITY/finishing_maps_EN.pdf`,
     } },
     { id: '1357289521370', properties: {
-      hs_course_name: 'RAIZ', estado_da_comercializacao: 'Em Comercialização',
+      hs_course_name: 'RAIZ', estado_da_comercializacao: 'Em Comercialização', imagem_do_empreendimento: 'https://fercopor.pt/wp-content/uploads/2026/01/Residencial_RAIZ.webp', logo: 'https://fercopor.pt/wp-content/uploads/2026/01/raiz_logo.svg',
       brochura: `${F}/RAIZ/brochura_PT.pdf`, brochura_en: `${F}/RAIZ/brochura_EN.pdf`,
       tabela_comercial: `${F}/RAIZ/tabela_PT.pdf`, tabela_comercial_en: `${F}/RAIZ/price_list_EN.pdf`,
       plantas_disponiveis: `${F}/RAIZ/plantas.pdf`, mapa_de_acabamentos: '', finishingh_maps: null,
     } },
     { id: '1357336474850', properties: {
-      hs_course_name: 'FOLIAGE', estado_da_comercializacao: 'Em Comercialização',
+      hs_course_name: 'FOLIAGE', estado_da_comercializacao: 'Em Comercialização', imagem_do_empreendimento: 'https://fercopor.pt/wp-content/uploads/2026/01/Residencial_FOLIAGE.webp', logo: 'https://fercopor.pt/wp-content/uploads/2026/01/foliage_logo.svg',
       brochura: `${F}/FOLIAGE/brochura_PT.pdf`, brochura_en: `${F}/FOLIAGE/brochura_EN.pdf`,
       tabela_comercial: `${F}/FOLIAGE/tabela_PT.pdf`, tabela_comercial_en: '',
       plantas_disponiveis: 'http://inseguro.exemplo/plantas.pdf',   // link inválido: não aparece

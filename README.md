@@ -49,12 +49,11 @@ um link «inglês» igual ao português não é apresentado como inglês (caso a
   (`slug:<id>`). Copiar depois para `ENDERECOS` para ficar versionado.
 - Mudar um endereço (só com autorização): alterar em `ENDERECOS` e acrescentar `REDIRECIONAMENTOS['antigo'] = 'novo'` (301). Nunca apagar redirecionamentos.
 
-## Imagens
+## Imagens e logótipos (dinâmicos)
 
-Imagens oficiais indicadas pela FERCOPOR (associadas pelo ID do registo, em `CAPAS`):
-capa da página = WebP oficial de `fercopor.pt`; partilha (`og:image`) = JPEG 1200 × 795 com a mesma proporção, em `public/partilha/`
-(o WebP não é aceite de forma fiável por todas as pré-visualizações). Para atualizar: mudar o URL em `CAPAS` e correr
-`node tools/gerar-imagens-partilha.mjs` (Windows, Microsoft Edge). Sem imagem oficial: cartão com o logótipo FERCOPOR.
+Lidos do HubSpot (Courses): imagem_do_empreendimento (capa e cartão) e logo (sobre a capa, proporção original). Só URLs https de imagem; vazio ou inválido = faixa FERCOPOR / nome escrito. Partilha (og:image): para SERENITY, RAIZ e FOLIAGE há cópias JPEG em public/partilha (o WhatsApp não aceita WebP de forma fiável); um empreendimento novo usa a imagem do HubSpot se for JPG/PNG, senão o cartão FERCOPOR.
+
+Um empreendimento novo em «Em Comercialização» com pelo menos um documento aparece sozinho (endereço gerado do nome e guardado em KV na primeira vez; atualização em ~10 min). Nada a alterar no código.
 
 ## Rodapé
 
