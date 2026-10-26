@@ -260,3 +260,14 @@ test('18. Sem documentos válidos: sem página, sem cartão e fora de links.json
   assert.ok(!(await pedir(a, '/')).texto.includes('Sem Docs'));
   assert.ok(!(await pedir(a, '/links.json')).texto.includes('Sem Docs'));
 });
+
+test('19. Favicon institucional igual ao da app Comercial (ico, svg e ícone de ecrã inicial), não os logótipos dos empreendimentos', async () => {
+  const a = ambiente();
+  for (const c of ['/', '/serenity', '/raiz/en', '/nao-existe']) {
+    const t = (await pedir(a, c)).texto;
+    assert.ok(t.includes('<link rel="icon" href="/favicon.ico" sizes="any">'), c);
+    assert.ok(t.includes('<link rel="icon" href="/favicon.svg" type="image/svg+xml">'), c);
+    assert.ok(t.includes('<link rel="apple-touch-icon" href="/apple-touch-icon.png">'), c);
+  }
+  for (const f of ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png']) assert.ok(readFileSync(new URL(`../public/${f}`, import.meta.url)).length > 100, f);
+});

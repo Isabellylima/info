@@ -35,4 +35,4 @@ export const LOGOTIPOS = {
 export const IMAGEM_GERAL = { caminho: '/partilha/fercopor.jpg', largura: 1200, altura: 630 };
 
 // Caminhos que nunca podem ser endereços de empreendimentos
-export const RESERVADOS = ['en', 'pt', 'admin', 'api', 'links.json', 'robots.txt', 'partilha', 'estilo.css', 'favicon.svg', 'fercopor-logo.svg', 'sitemap.xml'];
+export const RESERVADOS = ['en', 'pt', 'admin', 'api', 'links.json', 'robots.txt', 'partilha', 'estilo.css', 'favicon.svg', 'favicon.ico', 'apple-touch-icon.png', 'fercopor-logo.svg', 'sitemap.xml'];
