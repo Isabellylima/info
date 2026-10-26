@@ -87,7 +87,8 @@ test('7-8. Imagem certa por ID (capa WebP oficial; og:image JPEG) e metadados Op
   // um empreendimento com outro nome mas o mesmo ID mantém a imagem e o endereço
   const b = ambiente({ registos: empreendimentosFicticios().map((r) => (r.id === '1357339027666' ? { ...r, properties: { ...r.properties, hs_course_name: 'SERENITY Vilamoura' } } : r)) });
   const s2 = (await pedir(b, '/serenity')).texto;
-  assert.match(s2, /<h1>SERENITY Vilamoura<\/h1>/);
+  assert.ok(s2.includes('<h1><img class="logo-empreendimento" src="https://fercopor.pt/wp-content/uploads/2026/01/serenity_logo.svg" alt="SERENITY Vilamoura"'), 'logótipo pelo ID; nome no texto alternativo');
+  assert.ok(s2.includes('<title>SERENITY Vilamoura — '));
   assert.equal(meta(s2, 'og:image'), 'https://info.fercopor.workers.dev/partilha/serenity.jpg');
 });
 
@@ -113,8 +114,8 @@ test('10. Endereços permanentes: fixos por ID, normalizados, redirecionamentos 
   assert.equal((await pedir(a, '/serenity/')).r.headers.get('Location'), '/serenity');
   // novo empreendimento elegível: endereço gerado uma vez e guardado; outro com o mesmo nome não duplica
   const novos = [...empreendimentosFicticios(),
-    { id: '900', properties: { hs_course_name: 'Nova Era', estado_da_comercializacao: 'Em Comercialização' } },
-    { id: '901', properties: { hs_course_name: 'NOVA ERA', estado_da_comercializacao: 'Em Comercialização' } }];
+    { id: '900', properties: { hs_course_name: 'Nova Era', estado_da_comercializacao: 'Em Comercialização', brochura: 'https://27006740.fs1.hubspotusercontent-eu1.net/hubfs/27006740/NOVA/b.pdf' } },
+    { id: '901', properties: { hs_course_name: 'NOVA ERA', estado_da_comercializacao: 'Em Comercialização', brochura: 'https://27006740.fs1.hubspotusercontent-eu1.net/hubfs/27006740/NOVA/c.pdf' } }];
   const b = ambiente({ registos: novos });
   const j = JSON.parse((await pedir(b, '/links.json')).texto);
   const slugs = j.empreendimentos.map((e) => e.slug);
@@ -211,6 +212,51 @@ test('15. Página responsiva e segura: viewport, sem JavaScript, CSP, botões gr
   assert.equal((await pedir(a, '/serenity', { method: 'POST' })).r.status, 405);
   assert.equal((await pedir(a, '/serenity/fr')).r.status, 404);
   assert.equal((await pedir(a, '/../etc')).r.status, 404);
-  const nome = ambiente({ registos: [{ id: '1357339027666', properties: { hs_course_name: '<script>x</script>', estado_da_comercializacao: 'Em Comercialização' } }] });
-  assert.match((await pedir(nome, '/serenity')).texto, /<h1>&lt;script&gt;x&lt;\/script&gt;<\/h1>/, 'nome escapado');
+  const nome = ambiente({ registos: [{ id: '777', properties: { hs_course_name: '<script>x</script>', estado_da_comercializacao: 'Em Comercialização', brochura: 'https://27006740.fs1.hubspotusercontent-eu1.net/hubfs/27006740/X/b.pdf' } }] });
+  const slugX = JSON.parse((await pedir(nome, '/links.json')).texto).empreendimentos[0].slug;
+  assert.ok((await pedir(nome, '/' + slugX)).texto.includes('<h1><span class="logo-empreendimento-texto">&lt;script&gt;x&lt;/script&gt;</span></h1>'), 'sem logótipo: nome escrito e escapado');
+});
+
+test('16. Logótipos oficiais (por ID) no título; nome em texto alternativo e no título HTML; capa mantida', async () => {
+  const a = ambiente();
+  for (const slug of ['serenity', 'raiz', 'foliage']) {
+    const t = (await pedir(a, '/' + slug)).texto;
+    const N = slug.toUpperCase();
+    assert.ok(t.includes(`src="https://fercopor.pt/wp-content/uploads/2026/01/${slug}_logo.svg" alt="${N}"`), slug);
+    assert.ok(t.includes(`<title>${N} — `), slug);
+    assert.ok(t.includes(`class="capa-imagem" src="https://fercopor.pt/wp-content/uploads/2026/01/Residencial_${N}.webp"`), 'capa mantida');
+  }
+});
+
+test('17. Página inicial PT (/) e EN (/en): cartões dos publicados, ordem alfabética, links no idioma, noindex', async () => {
+  const a = ambiente();
+  const pt = await pedir(a, '/');
+  assert.equal(pt.r.status, 200);
+  assert.equal(pt.r.headers.get('X-Robots-Tag'), 'noindex, nofollow');
+  assert.ok(pt.texto.includes('<meta name="robots" content="noindex, nofollow">'));
+  const destinos = (t) => [...t.matchAll(/class="cartao" href="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(destinos(pt.texto), ['/foliage', '/raiz', '/serenity'], 'só elegíveis, por ordem alfabética');
+  assert.equal(pt.texto.split('Ver informações').length - 1, 3);
+  assert.equal(pt.texto.split('.webp"').length - 1, 3, 'imagens oficiais');
+  assert.equal(pt.texto.split('_logo.svg" alt="').length - 1, 3, 'logótipos oficiais');
+  assert.ok(!/PÁTIO|LUMARE/.test(pt.texto));
+  const en = await pedir(a, '/en');
+  assert.ok(en.texto.includes('<html lang="en">'));
+  assert.deepEqual(destinos(en.texto), ['/foliage/en', '/raiz/en', '/serenity/en']);
+  assert.equal(en.texto.split('View details').length - 1, 3);
+  assert.ok(pt.texto.includes('<a href="/en" hreflang="en" lang="en">EN</a>'));
+  assert.ok(en.texto.includes('<a href="/" hreflang="pt" lang="pt-PT">PT</a>'));
+  assert.equal(a.hs.pedidos.length, 1, 'a mesma cache das páginas');
+  const css = readFileSync(new URL('../public/estilo.css', import.meta.url), 'utf8');
+  assert.ok(css.includes('grid-template-columns: 1fr; }'));
+  assert.ok(css.includes('@media (min-width: 1000px) { .galeria { grid-template-columns: repeat(3, 1fr); } }'));
+  assert.ok(/\.cartao-imagem \{[^}]*aspect-ratio: 1240 \/ 822/.test(css));
+});
+
+test('18. Sem documentos válidos: sem página, sem cartão e fora de links.json', async () => {
+  const registos = [...empreendimentosFicticios(), { id: '950', properties: { hs_course_name: 'Sem Docs', estado_da_comercializacao: 'Em Comercialização', brochura: '', plantas_disponiveis: 'http://x/y.pdf' } }];
+  const a = ambiente({ registos });
+  assert.equal((await pedir(a, '/sem-docs')).r.status, 404);
+  assert.ok(!(await pedir(a, '/')).texto.includes('Sem Docs'));
+  assert.ok(!(await pedir(a, '/links.json')).texto.includes('Sem Docs'));
 });

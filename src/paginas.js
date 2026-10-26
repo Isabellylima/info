@@ -1,5 +1,5 @@
 // HTML das páginas públicas (sem JavaScript): PT e EN, metadados de partilha e diretivas de não indexação.
-import { CAPAS, IMAGENS_PARTILHA, IMAGEM_GERAL } from './enderecos.js';
+import { CAPAS, LOGOTIPOS, IMAGENS_PARTILHA, IMAGEM_GERAL } from './enderecos.js';
 
 export const TEXTOS = {
   pt: {
@@ -12,7 +12,8 @@ export const TEXTOS = {
     rodape: 'Os documentos abrem num novo separador. Para mais informações, contacte o seu consultor FERCOPOR.',
     indisponivel: ['Página indisponível', 'Esta página não está disponível. Confirme o link que recebeu.'],
     erro: ['Temporariamente indisponível', 'Não foi possível carregar a documentação. Tente novamente dentro de alguns minutos.'],
-    inicio: ['Documentação comercial', 'Abra o link do empreendimento que recebeu da equipa comercial FERCOPOR.'],
+    inicio: ['Documentação comercial', 'Escolha um empreendimento para consultar a brochura, a tabela comercial e as plantas.'],
+    verInformacoes: 'Ver informações', semEmpreendimentos: 'De momento não há empreendimentos com documentação disponível.',
     seletor: 'Idioma',
   },
   en: {
@@ -25,7 +26,8 @@ export const TEXTOS = {
     rodape: 'Documents open in a new tab. For more information, please contact your FERCOPOR consultant.',
     indisponivel: ['Page unavailable', 'This page is not available. Please check the link you received.'],
     erro: ['Temporarily unavailable', 'The documentation could not be loaded. Please try again in a few minutes.'],
-    inicio: ['Sales documentation', 'Open the development link you received from the FERCOPOR sales team.'],
+    inicio: ['Sales documentation', 'Choose a development to view the brochure, price list and floor plans.'],
+    verInformacoes: 'View details', semEmpreendimentos: 'There are currently no developments with documentation available.',
     seletor: 'Language',
   },
 };
@@ -68,9 +70,19 @@ ${url ? `<meta property="og:type" content="website">
 const logo = '<img class="logo" src="/fercopor-logo.svg" alt="FERCOPOR" width="153" height="24">';
 
 function seletor(t, idioma, slug) {
+  const pt = slug ? `/${slug}` : '/';
+  const en = slug ? `/${slug}/en` : '/en';
   return `<nav class="idiomas" aria-label="${t.seletor}">
-      <a href="/${slug}" hreflang="pt" lang="pt-PT"${idioma === 'pt' ? ' aria-current="page"' : ''}>PT</a><span aria-hidden="true">|</span><a href="/${slug}/en" hreflang="en" lang="en"${idioma === 'en' ? ' aria-current="page"' : ''}>EN</a>
+      <a href="${pt}" hreflang="pt" lang="pt-PT"${idioma === 'pt' ? ' aria-current="page"' : ''}>PT</a><span aria-hidden="true">|</span><a href="${en}" hreflang="en" lang="en"${idioma === 'en' ? ' aria-current="page"' : ''}>EN</a>
     </nav>`;
+}
+
+// Logótipo oficial no lugar do nome escrito (proporção original; o nome fica no texto alternativo e aparece se a
+// imagem não carregar). Sem logótipo: o nome escrito.
+function logotipoOuNome(e, classe) {
+  const l = LOGOTIPOS[e.id];
+  if (!l) return `<span class="${classe}-texto">${esc(e.nome)}</span>`;
+  return `<img class="${classe}" src="${esc(l.url)}" alt="${esc(e.nome)}" decoding="async">`;
 }
 
 function documento(t, url, rotulo, detalhe) {
@@ -118,10 +130,10 @@ export function paginaEmpreendimento({ origem, e, idioma, reserva }) {
   </header>
   <main>
     <section class="capa${capa ? '' : ' sem-imagem'}">
-      ${capa ? `<img class="capa-imagem" src="${esc(capa)}" alt="${esc(e.nome)}" width="1240" height="822" fetchpriority="high" decoding="async">` : ''}
+      ${capa ? `<img class="capa-imagem" src="${esc(capa)}" alt="" width="1240" height="822" fetchpriority="high" decoding="async">` : ''}
       <div class="capa-texto">
         <p class="sobretitulo">${t.titulo}</p>
-        <h1>${esc(e.nome)}</h1>
+        <h1>${logotipoOuNome(e, 'logo-empreendimento')}</h1>
       </div>
     </section>
     <div class="conteudo">
@@ -130,6 +142,41 @@ export function paginaEmpreendimento({ origem, e, idioma, reserva }) {
     </div>
   </main>
   <footer class="rodape"><p>${t.rodape}</p><p>© FERCOPOR</p></footer>
+</body>
+</html>`;
+}
+
+// Página inicial: galeria dos empreendimentos publicados (ordem alfabética), em PT (/) ou EN (/en)
+export function paginaInicial({ origem, empreendimentos, idioma, reserva }) {
+  const t = TEXTOS[idioma];
+  const [titulo, texto] = t.inicio;
+  const sufixo = idioma === 'en' ? '/en' : '';
+  const cartoes = empreendimentos.map((e) => {
+    const capa = CAPAS[e.id];
+    return `<li><a class="cartao" href="/${e.slug}${sufixo}">
+          <span class="cartao-imagem">${capa ? `<img src="${esc(capa)}" alt="" width="1240" height="822" loading="lazy" decoding="async">` : ''}
+            <span class="cartao-logo">${logotipoOuNome(e, 'logo-cartao')}</span></span>
+          <span class="cartao-acao">${t.verInformacoes}<span aria-hidden="true"> →</span></span>
+        </a></li>`;
+  }).join('\n        ');
+  return `${cabecalho({
+    t, titulo: `FERCOPOR — ${titulo}`, descricao: texto, url: origem + (sufixo || '/'), imagem: { url: origem + IMAGEM_GERAL.caminho, largura: IMAGEM_GERAL.largura, altura: IMAGEM_GERAL.altura, alt: 'FERCOPOR' },
+    alternativas: [{ lang: 'pt-PT', url: `${origem}/` }, { lang: 'en', url: `${origem}/en` }],
+  })}
+<body>
+  <header class="topo">
+    ${logo}
+    ${seletor(t, idioma, '')}
+  </header>
+  <main class="inicio">
+    <h1>${titulo}</h1>
+    <p class="introducao">${texto}</p>
+    ${reserva ? `<p class="aviso">${t.reserva}</p>` : ''}
+    ${cartoes ? `<ul class="galeria">
+        ${cartoes}
+    </ul>` : `<p class="vazio">${t.semEmpreendimentos}</p>`}
+  </main>
+  <footer class="rodape"><p>© FERCOPOR</p></footer>
 </body>
 </html>`;
 }

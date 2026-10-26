@@ -51,6 +51,11 @@ export function materiaisDe(p) {
   };
 }
 
+// Pelo menos um documento válido (sem documentos, o empreendimento não é publicado)
+export function temMateriais(m) {
+  return Boolean(m.plantas || [m.brochura, m.tabela, m.acabamentos].some((p) => p.pt || p.en));
+}
+
 async function lerHubSpot(env) {
   const token = String(env.HUBSPOT_TOKEN || '').trim();
   if (!token) throw new Error('HUBSPOT_TOKEN em falta');
@@ -78,7 +83,7 @@ async function lerHubSpot(env) {
   // Segunda verificação do estado (valor técnico), além do filtro do pedido
   return resultados.filter((o) => (o.properties || {}).estado_da_comercializacao === ESTADO_PUBLICAVEL)
     .map((o) => ({ id: String(o.id), nome: String(o.properties.hs_course_name || '').trim(), materiais: materiaisDe(o.properties) }))
-    .filter((e) => e.nome);
+    .filter((e) => e.nome && temMateriais(e.materiais));
 }
 
 // Endereço de cada empreendimento: fixo (enderecos.js) → já atribuído (KV) → novo, gerado do nome e guardado

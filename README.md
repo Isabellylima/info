@@ -3,6 +3,7 @@
 Páginas públicas de documentação comercial por empreendimento, para partilha direta (WhatsApp, e-mail, Teams).
 Independente da aplicação interna Comercial FERCOPOR. Sem autenticação, sem formulários, sem JavaScript.
 
+- `https://info.fercopor.workers.dev/` e `/en` — página inicial: galeria dos empreendimentos publicados (ordem alfabética)
 - `https://info.fercopor.workers.dev/<slug>` — português
 - `https://info.fercopor.workers.dev/<slug>/en` — inglês
 - `https://info.fercopor.workers.dev/links.json` — lista para a futura integração «Copiar link»
@@ -52,6 +53,12 @@ Imagens oficiais indicadas pela FERCOPOR (associadas pelo ID do registo, em `CAP
 capa da página = WebP oficial de `fercopor.pt`; partilha (`og:image`) = JPEG 1200 × 795 com a mesma proporção, em `public/partilha/`
 (o WebP não é aceite de forma fiável por todas as pré-visualizações). Para atualizar: mudar o URL em `CAPAS` e correr
 `node tools/gerar-imagens-partilha.mjs` (Windows, Microsoft Edge). Sem imagem oficial: cartão com o logótipo FERCOPOR.
+
+## Logótipos
+
+Logótipos oficiais (SVG de `fercopor.pt`, em `LOGOTIPOS`, por ID) substituem o nome escrito no título da página e nos cartões; o nome fica no
+título HTML, nos metadados e no texto alternativo (aparece se o logótipo não carregar). Sem logótipo: nome escrito.
+Só são publicados empreendimentos com pelo menos um documento válido.
 
 ## Atualização dos materiais
 

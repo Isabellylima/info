@@ -24,6 +24,13 @@ export const IMAGENS_PARTILHA = {
   '1357289521370': { caminho: '/partilha/raiz.jpg', largura: 1200, altura: 795 },
   '1357336474850': { caminho: '/partilha/foliage.jpg', largura: 1200, altura: 795 },
 };
+// Logótipos oficiais (SVG claros, indicados pela FERCOPOR a 2026-10-26), por ID; largura/altura = viewBox original.
+// Sem logótipo: o nome aparece escrito.
+export const LOGOTIPOS = {
+  '1357339027666': { url: 'https://fercopor.pt/wp-content/uploads/2026/01/serenity_logo.svg', largura: 240, altura: 48 },
+  '1357289521370': { url: 'https://fercopor.pt/wp-content/uploads/2026/01/raiz_logo.svg', largura: 116, altura: 56 },
+  '1357336474850': { url: 'https://fercopor.pt/wp-content/uploads/2026/01/foliage_logo.svg', largura: 112, altura: 56 },
+};
 // Sem imagem oficial: cartão com o logótipo FERCOPOR (não é uma imagem do empreendimento)
 export const IMAGEM_GERAL = { caminho: '/partilha/fercopor.jpg', largura: 1200, altura: 630 };
 

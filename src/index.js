@@ -3,7 +3,7 @@
 // Os ficheiros de public/ (estilo, logótipo, imagens de partilha) são servidos diretamente pelo Cloudflare.
 import { obterDados } from './dados.js';
 import { REDIRECIONAMENTOS } from './enderecos.js';
-import { paginaEmpreendimento, paginaMensagem } from './paginas.js';
+import { paginaEmpreendimento, paginaInicial, paginaMensagem } from './paginas.js';
 
 const SEGURANCA = {
   'X-Robots-Tag': 'noindex, nofollow',
@@ -55,7 +55,17 @@ export default {
       return redirecionar(caminho.toLowerCase().replace(/\/+$/, '') || '/');
     }
 
-    if (caminho === '/') return html(paginaMensagem({ idioma: 'pt', tipo: 'inicio' }));
+    // Página inicial: galeria dos empreendimentos publicados (PT em /, EN em /en)
+    if (caminho === '/' || caminho === '/en') {
+      const idiomaInicio = caminho === '/en' ? 'en' : 'pt';
+      try {
+        const d = await obterDados(env);
+        const lista = [...d.empreendimentos].sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+        return html(paginaInicial({ origem, empreendimentos: lista, idioma: idiomaInicio, reserva: d.reserva }), 200, { 'Content-Language': idiomaInicio === 'en' ? 'en' : 'pt-PT' });
+      } catch {
+        return html(paginaMensagem({ idioma: idiomaInicio, tipo: 'erro' }), 503, { 'Retry-After': '300', 'Cache-Control': 'no-store' });
+      }
+    }
 
     if (caminho === '/links.json') {
       try {
