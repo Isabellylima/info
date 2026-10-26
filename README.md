@@ -37,6 +37,8 @@ Elegibilidade: `estado_da_comercializacao` = `Em Comercialização` (valor técn
 | Plantas disponíveis | `plantas_disponiveis` |
 | Mapa de acabamentos — Português / Inglês | `mapa_de_acabamentos` / `finishingh_maps` (nome técnico existente) |
 
+Idioma: `/<slug>` mostra só os documentos das propriedades PT (brochura, tabela_comercial, plantas_disponiveis, mapa_de_acabamentos); `/<slug>/en` só os das propriedades EN (brochura_en, tabela_comercial_en, plantas_disponiveis — partilhada —, finishingh_maps). Um cartão por categoria; sem link nesse idioma, sem cartão (o PT nunca substitui o EN).
+
 Regras: só links `https://27006740.fs1.hubspotusercontent-eu1.net/hubfs/27006740/…`; vazio ou inválido não aparece;
 um link «inglês» igual ao português não é apresentado como inglês (caso atual da brochura EN do SERENITY — a corrigir no HubSpot).
 
@@ -53,6 +55,10 @@ Imagens oficiais indicadas pela FERCOPOR (associadas pelo ID do registo, em `CAP
 capa da página = WebP oficial de `fercopor.pt`; partilha (`og:image`) = JPEG 1200 × 795 com a mesma proporção, em `public/partilha/`
 (o WebP não é aceite de forma fiável por todas as pré-visualizações). Para atualizar: mudar o URL em `CAPAS` e correr
 `node tools/gerar-imagens-partilha.mjs` (Windows, Microsoft Edge). Sem imagem oficial: cartão com o logótipo FERCOPOR.
+
+## Rodapé
+
+Rodapé institucional em todas as páginas (Contacte-nos / Contact us): telefone (tel:), e-mail (mailto:), morada e Instagram, Facebook, LinkedIn e YouTube (novo separador, noopener noreferrer). Ícones SVG inline, logótipo FERCOPOR claro, fundo bronze FERCOPOR.
 
 ## Logótipos
 

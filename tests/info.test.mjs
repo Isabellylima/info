@@ -35,32 +35,91 @@ test('1-3. Só «Em Comercialização» (valor técnico): pedido filtrado e segu
   assert.equal(a.hs.pedidos[0].url, 'https://api.hubapi.com/crm/v3/objects/0-410/search');
 });
 
-test('4-5. Materiais lidos das propriedades certas; vazios, inválidos e «EN igual a PT» não aparecem', async () => {
-  const a = ambiente();
+// URLs fictícios distintos para CADA propriedade (PT e EN), nos três empreendimentos
+const F = 'https://27006740.fs1.hubspotusercontent-eu1.net/hubfs/27006740';
+function registosIdiomas() {
+  return [['1357339027666', 'SERENITY'], ['1357289521370', 'RAIZ'], ['1357336474850', 'FOLIAGE']].map(([id, nome]) => ({ id, properties: {
+    hs_course_name: nome, estado_da_comercializacao: 'Em Comercialização',
+    brochura: `${F}/${nome}/brochura-PT.pdf`, brochura_en: `${F}/${nome}/brochure-EN.pdf`,
+    tabela_comercial: `${F}/${nome}/tabela-PT.pdf`, tabela_comercial_en: `${F}/${nome}/price-list-EN.pdf`,
+    plantas_disponiveis: `${F}/${nome}/plantas.pdf`,
+    mapa_de_acabamentos: `${F}/${nome}/mapa-acabamentos-PT.pdf`, finishingh_maps: `${F}/${nome}/finishing-maps-EN.pdf`,
+  } }));
+}
+const PT = (n) => [`${F}/${n}/brochura-PT.pdf`, `${F}/${n}/tabela-PT.pdf`, `${F}/${n}/plantas.pdf`, `${F}/${n}/mapa-acabamentos-PT.pdf`];
+const EN = (n) => [`${F}/${n}/brochure-EN.pdf`, `${F}/${n}/price-list-EN.pdf`, `${F}/${n}/plantas.pdf`, `${F}/${n}/finishing-maps-EN.pdf`];
+
+test('4-5. Idioma: PT só propriedades PT, EN só propriedades EN (plantas partilhadas), um cartão por categoria — SERENITY, RAIZ e FOLIAGE', async () => {
+  const a = ambiente({ registos: registosIdiomas() });
+  for (const nome of ['SERENITY', 'RAIZ', 'FOLIAGE']) {
+    const slug = nome.toLowerCase();
+    const pt = links((await pedir(a, `/${slug}`)).texto);
+    const en = links((await pedir(a, `/${slug}/en`)).texto);
+    assert.deepEqual(pt, PT(nome), `${slug}: PT, pela ordem e sem repetições`);
+    assert.deepEqual(en, EN(nome), `${slug}/en: EN, pela ordem e sem repetições`);
+    assert.ok(!pt.some((u) => u.includes('-EN')), `${slug}: nenhum documento EN na página PT`);
+    assert.ok(!en.some((u) => u.includes('-PT')), `${slug}/en: nenhum documento PT na página EN`);
+    assert.notDeepEqual(pt, en, 'mudar de idioma muda os URLs');
+    assert.equal(new Set(pt).size, pt.length); assert.equal(new Set(en).size, en.length);
+  }
   const s = (await pedir(a, '/serenity')).texto;
-  const F = 'https://27006740.fs1.hubspotusercontent-eu1.net/hubfs/27006740/SERENITY';
-  assert.deepEqual(links(s), [`${F}/brochura_PT.pdf`, `${F}/tabela_PT.pdf`, `${F}/price_list_EN.pdf`, `${F}/plantas.pdf`, `${F}/mapa_acabamentos_PT.pdf`, `${F}/finishing_maps_EN.pdf`]);
-  assert.equal((s.match(/<strong>Brochura<\/strong>/g) || []).length, 1, 'a brochura EN (= PDF PT) não é apresentada como inglesa');
-  const raiz = (await pedir(a, '/raiz')).texto;
-  assert.ok(!raiz.includes('Mapa de acabamentos'), 'sem mapa de acabamentos: categoria oculta');
-  const foliage = (await pedir(a, '/foliage')).texto;
-  assert.ok(!foliage.includes('Plantas disponíveis'), 'link http/fora do HubSpot: oculto');
-  assert.ok(!foliage.includes('Tabela comercial</strong><small>Inglês'), 'tabela EN vazia: oculta');
+  const e = (await pedir(a, '/serenity/en')).texto;
+  assert.deepEqual([...s.matchAll(/<strong>([^<]+)<\/strong>/g)].map((m) => m[1]), ['Brochura', 'Tabela comercial', 'Plantas disponíveis', 'Mapa de acabamentos']);
+  assert.deepEqual([...e.matchAll(/<strong>([^<]+)<\/strong>/g)].map((m) => m[1]), ['Brochure', 'Price list', 'Available floor plans', 'Finishing maps']);
+  assert.doesNotMatch(s + e, /<small>|Português|Inglês|English<|Portuguese|PDF document|Documento PDF/, 'sem subtítulos de idioma/formato');
+});
+
+test('4b. Vazio no idioma: sem cartão e sem substituto PT; brochura EN igual à PT (caso SERENITY) oculta em EN; links inválidos ocultos', async () => {
+  const registos = registosIdiomas().map((r) => (r.id === '1357289521370'
+    ? { ...r, properties: { ...r.properties, tabela_comercial_en: '', finishingh_maps: null, mapa_de_acabamentos: '' } } : r.id === '1357339027666'
+    ? { ...r, properties: { ...r.properties, brochura_en: r.properties.brochura } } : r.id === '1357336474850'
+    ? { ...r, properties: { ...r.properties, plantas_disponiveis: 'http://inseguro.exemplo/plantas.pdf' } } : r));
+  const a = ambiente({ registos });
+  const raizEn = links((await pedir(a, '/raiz/en')).texto);
+  assert.deepEqual(raizEn, [`${F}/RAIZ/brochure-EN.pdf`, `${F}/RAIZ/plantas.pdf`], 'sem Price list nem Finishing maps; sem PT em vez de EN');
+  assert.ok(!links((await pedir(a, '/raiz')).texto).some((u) => u.includes('mapa')), 'mapa PT vazio: sem cartão');
+  const serEn = (await pedir(a, '/serenity/en')).texto;
+  assert.ok(!links(serEn).includes(`${F}/SERENITY/brochura-PT.pdf`), 'PDF PT nunca como inglês');
+  assert.doesNotMatch(serEn, /<strong>Brochure<\/strong>/);
+  assert.ok(links((await pedir(a, '/serenity')).texto).includes(`${F}/SERENITY/brochura-PT.pdf`), 'continua na página PT');
+  assert.doesNotMatch((await pedir(a, '/foliage')).texto, /Plantas disponíveis/, 'link inválido: oculto');
   assert.equal(linkValido('javascript:alert(1)'), '');
   assert.equal(linkValido('https://outro.exemplo/hubfs/27006740/x.pdf'), '');
 });
 
-test('6. PT e EN: mesma estrutura, interface traduzida, idioma da página primeiro, seletor PT | EN', async () => {
-  const a = ambiente();
+test('6. PT e EN: mesma estrutura, interface traduzida, seletor PT | EN; cache partilhada sem misturar idiomas', async () => {
+  const a = ambiente({ registos: registosIdiomas() });
   const pt = (await pedir(a, '/serenity')).texto;
   const en = (await pedir(a, '/serenity/en')).texto;
+  const pt2 = (await pedir(a, '/serenity')).texto;
+  assert.equal(a.hs.pedidos.length, 1, 'uma leitura do HubSpot para os dois idiomas');
+  assert.deepEqual(links(pt2), links(pt), 'depois da página EN, a PT continua só com PT');
   assert.match(pt, /<html lang="pt-PT">/); assert.match(en, /<html lang="en">/);
   assert.match(pt, /Documentação comercial/); assert.match(en, /Sales documentation/);
-  assert.match(en, /Price list<\/strong><small>English/);
-  assert.ok(links(en).indexOf(links(en).find((l) => l.endsWith('price_list_EN.pdf'))) < links(en).indexOf(links(en).find((l) => l.endsWith('tabela_PT.pdf'))), 'EN primeiro');
-  assert.deepEqual(links(pt).sort(), links(en).sort(), 'os mesmos documentos nos dois idiomas');
   assert.match(pt, /<a href="\/serenity" hreflang="pt" lang="pt-PT" aria-current="page">PT<\/a>/);
   assert.match(en, /<a href="\/serenity\/en" hreflang="en" lang="en" aria-current="page">EN<\/a>/);
+});
+
+test('20. Rodapé institucional em todas as páginas: Contacte-nos / Contact us, tel:, mailto:, morada, 4 redes num novo separador', async () => {
+  const a = ambiente();
+  const REDES = ['https://www.instagram.com/fercopor.ferreiradacosta?xtok=NG5rbGJlZmd4M2Jk', 'https://www.facebook.com/share/18WGuJvPwX/?mibextid=wwXIfr',
+    'https://www.linkedin.com/company/fercopor/', 'https://youtube.com/@fercopor?si=1H6uo5WnyFi9SBxN'];
+  for (const [c, titulo] of [['/', 'Contacte-nos'], ['/en', 'Contact us'], ['/serenity', 'Contacte-nos'], ['/raiz/en', 'Contact us'], ['/foliage', 'Contacte-nos'], ['/nao-existe', 'Contacte-nos'], ['/nao-existe/en', 'Contact us']]) {
+    const { r, texto } = await pedir(a, c);
+    assert.ok(texto.includes(`<h2>${titulo}</h2>`), c);
+    assert.ok(texto.includes('<a href="tel:+351226065245">(+351) 226 065 245</a>'), c);
+    assert.ok(texto.includes('<a href="mailto:geral@fercopor.pt">geral@fercopor.pt</a>'), c);
+    assert.ok(texto.includes('Porto Office Park – Avenida de Sidónio Pais, 153<br>Torre A, Piso 4, Fração 403<br>4100-467 Porto<br>Portugal'), c);
+    for (const u of REDES) assert.ok(texto.includes(`href="${u.replace(/&/g, '&amp;')}" target="_blank" rel="noopener noreferrer"`), `${c} ${u}`);
+    assert.ok(texto.includes('class="rodape-logo" src="/fercopor-logo.svg"'), c);
+    assert.doesNotMatch(texto, /Os documentos abrem num novo separador|Documents open in a new tab/, c);
+    assert.equal(r.headers.get('X-Robots-Tag'), 'noindex, nofollow', c);
+    assert.ok(texto.includes('<meta name="robots" content="noindex, nofollow">'), c);
+  }
+  assert.ok((await pedir(a, '/en')).texto.includes('Phone: <a href="tel:'));
+  const css = readFileSync(new URL('../public/estilo.css', import.meta.url), 'utf8');
+  assert.match(css, /\.rodape \{[^}]*background: var\(--bronze\); color: #FFFFFF;/);
+  assert.match(css, /@media \(min-width: 760px\) \{ \.rodape-interior \{ grid-template-columns: 1\.2fr 1fr 1fr;/);
 });
 
 test('7-8. Imagem certa por ID (capa WebP oficial; og:image JPEG) e metadados Open Graph/Twitter no HTML do servidor', async () => {
